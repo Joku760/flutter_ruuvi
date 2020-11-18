@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "456355055155",
+    "firebase_url": "https://flutterruuvi.firebaseio.com",
+    "project_id": "flutterruuvi",
+    "storage_bucket": "flutterruuvi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:456355055155:android:f22febd1c2feb2b2cbc546",
+        "android_client_info": {
+          "package_name": "com.example.flutter_ruuvi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "456355055155-aipl2ihu5bg23o4vjv1nvb3e3ortpr5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJsPqqLlhc-mj9DyJLe7yB5sZ_li1U-AM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "456355055155-aipl2ihu5bg23o4vjv1nvb3e3ortpr5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
