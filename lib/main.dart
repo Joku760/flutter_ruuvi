@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ruuvi/database_connect.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() {
   runApp(MyApp());
@@ -59,6 +61,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget testi(){
+    Firebase.initializeApp();
+    return GetData('Ki7frsgHmRxjcE69qQ06');
+  }
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -96,6 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'You have pushed the button this many times:',
             ),
+            testi(),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
