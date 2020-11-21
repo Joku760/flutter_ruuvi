@@ -3,8 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GetData extends StatelessWidget {
   final String documentId;
+  final bool highTemp;
 
-  GetData(this.documentId);
+  GetData(this.documentId, this.highTemp);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class GetData extends StatelessWidget {
 
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data = snapshot.data.data();
-          return Text("FROM DATABASE: ${data['Temperature']} ${data['DeviceId']}");
+          return Text("FROM DATABASE: ${data['Temperature']} ${data['Time'].toDate()} ${data['DeviceId']}");
         }
 
         return Text("loading");
@@ -29,3 +30,37 @@ class GetData extends StatelessWidget {
     );
   }
 }
+
+class PushData extends StatelessWidget{
+
+  final String deviceId;
+  final double temperature;
+  final Timestamp timeStamp;
+
+  PushData(this.deviceId, this.temperature, this.timeStamp);
+
+  @override
+  Widget build(BuildContext context) {
+
+    CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
+
+    Future<void> addValue() {
+      return values
+          .add({
+        'DeviceId': deviceId,
+        'Temperature': temperature,
+        'Time': timeStamp
+      })
+          .then((value) => print("Value Added"))
+          .catchError((error) => print("Failed to add value: $error"));
+    }
+
+    return FlatButton(
+      onPressed: addValue,
+      child: Text(
+        "Add Value",
+      ),
+    );
+  }
+}
+

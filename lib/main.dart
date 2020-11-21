@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ruuvi/database_connect.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -63,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget testi(){
     Firebase.initializeApp();
-    return GetData('Ki7frsgHmRxjcE69qQ06');
+    return GetData('Ki7frsgHmRxjcE69qQ06', true);
   }
   @override
   Widget build(BuildContext context) {
@@ -107,6 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            PushData('herpaderpadöö', 21.2, Timestamp.now())
           ],
         ),
       ),
