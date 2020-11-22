@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget testi(){
     Firebase.initializeApp();
-    return GetData('Ki7frsgHmRxjcE69qQ06', true);
+    return GetData('Ki7frsgHmRxjcE69qQ06', true, Timestamp.now());
   }
   @override
   Widget build(BuildContext context) {
