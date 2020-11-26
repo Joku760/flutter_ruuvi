@@ -7,6 +7,9 @@ import 'package:flutter_ruuvi/database_connect.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
+import 'package:flutter_calendar_carousel/classes/event.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -29,7 +32,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Ruuvi Project'),
     );
   }
 }
@@ -58,12 +61,25 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   double tempC = 0;
 
+  var _currentDate = new DateTime.now();
+  DateTime dateValue; //valittu päivämäärä
+
+  void handleClick(String value) {
+    switch (value) {
+      case 'Settings':
+        break;
+      case 'Logout':
+        break;
+    }
+  }
+
   void _incrementCounter() {
     widget.flutterBlue.startScan(timeout: Duration(seconds: 4));
     widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
       for (ScanResult result in results) {
         //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
-        if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
+        if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
+        //if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
           print(result.advertisementData.manufacturerData);
           parseManufacturerData(result.advertisementData.manufacturerData);
         }
@@ -108,38 +124,67 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: handleClick,
+            itemBuilder: (BuildContext context) {
+              return {'Logout', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
+        centerTitle: true,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Lämpötila on:',
+      body: Column(
+        children: <Widget>[
+          Padding(padding: EdgeInsets.all(20.0),),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Column(
+                children: <Widget>[
+                  Text("Ylin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
+                  Text('$dateValue')
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  Text("Tämän hetkinen lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
+                  Text('$tempC \u{00B0}C', style: Theme.of(context).textTheme.headline4,),
+                  //PushData('herpaderpadöö', 21.2, Timestamp.now())
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  Text("Alin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
+                  Text("10 astetta")
+                ],
+              ),
+            ],
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 16.0),
+            child: CalendarCarousel<Event>(
+              onDayPressed: (DateTime date, List<Event> events) {
+                this.setState(() => _currentDate = dateValue = date);
+              },
+              weekendTextStyle: TextStyle(
+                color: Colors.red,
+              ),
+              thisMonthDayBorderColor: Colors.grey,
+              weekFormat: false,
+              markedDatesMap: null,
+              height: 420.0,
+              width: 620.0,
+              selectedDateTime: _currentDate,
+              daysHaveCircularBorder: false, /// null for not rendering any border, true for circular border, false for rectangular border
             ),
-            //testi(),
-            Text(
-              '$tempC \u{00B0}C',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-            //PushData('herpaderpadöö', 21.2, Timestamp.now())
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
