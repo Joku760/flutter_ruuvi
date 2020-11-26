@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ruuvi/database_connect.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 void main() {
   runApp(MyApp());
@@ -43,6 +47,8 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  final FlutterBlue flutterBlue = FlutterBlue.instance;
+  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -50,8 +56,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  double tempC = 0;
 
   void _incrementCounter() {
+    widget.flutterBlue.startScan(timeout: Duration(seconds: 4));
+    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
+      for (ScanResult result in results) {
+        //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
+        if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
+          print(result.advertisementData.manufacturerData);
+          parseManufacturerData(result.advertisementData.manufacturerData);
+        }
+      }
+    });
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -62,10 +79,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  parseManufacturerData(data) {
+    var manufacturerData = Uint8List.fromList(data[1177]);
+    var pressure = ByteData.sublistView(manufacturerData, 4, 6);
+    var humidity = ByteData.sublistView(manufacturerData, 2, 4);
+    var temperature = ByteData.sublistView(manufacturerData, 0, 2);
+    print("Pressure: ${(pressure.getUint16(0, Endian.little)+50000)/100} hPa");
+    print("Humidity: ${humidity.getUint16(0, Endian.little)/400} %");
+    print("Temperature: ${temperature.getUint16(0, Endian.little)*0.005} \u{00B0}C");
+    tempC = temperature.getUint16(0, Endian.little)*0.005;
+  }
+
   Widget testi(){
     Firebase.initializeApp();
     return GetData('Ki7frsgHmRxjcE69qQ06', true, Timestamp.now());
   }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -101,14 +130,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              'Lämpötila on:',
             ),
-            testi(),
+            //testi(),
             Text(
-              '$_counter',
+              '$tempC \u{00B0}C',
               style: Theme.of(context).textTheme.headline4,
             ),
-            PushData('herpaderpadöö', 21.2, Timestamp.now())
+            //PushData('herpaderpadöö', 21.2, Timestamp.now())
           ],
         ),
       ),
