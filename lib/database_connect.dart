@@ -1,31 +1,40 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class GetData extends StatelessWidget {
   final String documentId;
   final Timestamp date;
   final bool highTemp;
+  final DateTime dates = new DateTime(2020-21-11);
 
   GetData(this.documentId, this.highTemp, this.date);
 
   @override
   Widget build(BuildContext context) {
+    Firebase.initializeApp();
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
-        /*values.where("Time", isEqualTo: date );
-        values.orderBy('Temperature', descending: highTemp);
-        values.limit(1); */
+      //.where("Time", isEqualTo: dates )
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: values.doc(documentId).get(),
+    return FutureBuilder<QuerySnapshot>(
+      future: values.orderBy('Temperature', descending: highTemp).limit(1).get(),
       builder:
-          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
 
         if (snapshot.hasError) {
           return Text("Something went wrong");
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data = snapshot.data.data();
+
+          final querySnapshot = snapshot.data;
+          querySnapshot.docs.forEach((result) {
+            Map<String, dynamic> data = result.data();
+            log(data.toString());
+          });
+
+          Map <String, dynamic> data = querySnapshot.docs[0].data();
           return Text("FROM DATABASE: ${data['Temperature']} ${data['Time'].toDate()} ${data['DeviceId']}");
         }
 
@@ -45,7 +54,6 @@ class PushData extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
 
     Future<void> addValue() {
