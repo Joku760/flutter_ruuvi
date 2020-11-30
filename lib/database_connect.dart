@@ -1,27 +1,30 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 class GetData extends StatelessWidget {
-  final String documentId;
-  final Timestamp date;
+  final DateTime date;
   final bool highTemp;
-  final DateTime dates = new DateTime(2020-21-11);
 
-  GetData(this.documentId, this.highTemp, this.date);
+  GetData(this.highTemp, this.date);
 
   @override
   Widget build(BuildContext context) {
-    Firebase.initializeApp();
-    CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
-      //.where("Time", isEqualTo: dates )
 
+    DateTime localDate;
+    localDate = date;
+    if(date == null)
+      {
+        DateTime today = DateTime.now();
+        localDate = new DateTime(today.year, today.month, today.day);
+      }
+    DateTime limiterDate = localDate.add(Duration(days: 1));
+
+    CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
+    Timestamp.fromDate(localDate);
     return FutureBuilder<QuerySnapshot>(
-      future: values.orderBy('Temperature', descending: highTemp).limit(1).get(),
+      future: values.where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: highTemp).limit(1).get(),
       builder:
           (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-
         if (snapshot.hasError) {
           return Text("Something went wrong");
         }
@@ -31,11 +34,23 @@ class GetData extends StatelessWidget {
           final querySnapshot = snapshot.data;
           querySnapshot.docs.forEach((result) {
             Map<String, dynamic> data = result.data();
-            log(data.toString());
-          });
 
-          Map <String, dynamic> data = querySnapshot.docs[0].data();
-          return Text("FROM DATABASE: ${data['Temperature']} ${data['Time'].toDate()} ${data['DeviceId']}");
+           /* print(data.toString());
+            print(data['Time'].toString());
+            print(data['Time'].toDate().toString());
+            print(' ');*/
+
+          });
+          //print(localDate.toString());
+          if(querySnapshot.docs.length != 0)
+            {
+              Map <String, dynamic> data = querySnapshot.docs[0].data();
+              //return Text("DATABASE: ${data['Temperature']} ${data['Time'].toDate()} ${data['DeviceId']}");
+              return Text("${data['Temperature']}");
+            }
+          else{
+            return Text("No data");
+          }
         }
 
         return Text("loading");
@@ -48,9 +63,9 @@ class PushData extends StatelessWidget{
 
   final String deviceId;
   final double temperature;
-  final Timestamp timeStamp;
+  final DateTime dateTime;
 
-  PushData(this.deviceId, this.temperature, this.timeStamp);
+  PushData(this.deviceId, this.temperature, this.dateTime);
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +76,7 @@ class PushData extends StatelessWidget{
           .add({
         'DeviceId': deviceId,
         'Temperature': temperature,
-        'Time': timeStamp
+        'Time': dateTime
       })
           .then((value) => print("Value Added"))
           .catchError((error) => print("Failed to add value: $error"));

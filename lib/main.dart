@@ -10,7 +10,9 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
 import 'package:flutter_calendar_carousel/classes/event.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -106,11 +108,6 @@ class _MyHomePageState extends State<MyHomePage> {
     tempC = temperature.getUint16(0, Endian.little)*0.005;
   }
 
-  Widget testi(){
-    Firebase.initializeApp();
-    return GetData('Ki7frsgHmRxjcE69qQ06', true, Timestamp.now());
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -148,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: <Widget>[
                   Text("Ylin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  Text('$dateValue')
+                  GetData(true, dateValue),
                 ],
               ),
               Column(
@@ -161,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: <Widget>[
                   Text("Alin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  Text("10 astetta")
+                  GetData(false, dateValue),
                 ],
               ),
             ],
