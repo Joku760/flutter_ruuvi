@@ -80,8 +80,8 @@ class _MyHomePageState extends State<MyHomePage> {
     widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
       for (ScanResult result in results) {
         //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
-        if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
-        //if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
+        //if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
+        if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
           print(result.advertisementData.manufacturerData);
           parseManufacturerData(result.advertisementData.manufacturerData);
         }
@@ -174,6 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               thisMonthDayBorderColor: Colors.grey,
               weekFormat: false,
+              pageSnapping: true,
+              firstDayOfWeek: 1,
               markedDatesMap: null,
               height: 420.0,
               width: 620.0,
