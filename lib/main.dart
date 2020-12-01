@@ -145,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: <Widget>[
                   Text("Ylin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  GetData(true, dateValue),
+                  GetData(true, dateValue, '1'), //Kovakoodatun arvon tilalle laitteen id
                 ],
               ),
               Column(
@@ -158,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: <Widget>[
                   Text("Alin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  GetData(false, dateValue),
+                  GetData(false, dateValue, '1'), //kovakoodatun arvon tilalle laitteen id
                 ],
               ),
             ],

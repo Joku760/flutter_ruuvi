@@ -4,8 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class GetData extends StatelessWidget {
   final DateTime date;
   final bool highTemp;
+  final String deviceId;
 
-  GetData(this.highTemp, this.date);
+  GetData(this.highTemp, this.date, this.deviceId);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class GetData extends StatelessWidget {
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
     Timestamp.fromDate(localDate);
     return FutureBuilder<QuerySnapshot>(
-      future: values.where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: highTemp).limit(1).get(),
+      future: values.where('DeviceId', isEqualTo: deviceId).where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: highTemp).limit(1).get(),
       builder:
           (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
