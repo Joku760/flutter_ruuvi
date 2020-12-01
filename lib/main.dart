@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:isolate';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   double tempC = 0;
+  bool noIsolateRunning = true;
+  bool notScanningYet = true;
 
   var _currentDate = new DateTime.now();
   DateTime dateValue; //valittu päivämäärä
@@ -75,18 +78,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _incrementCounter() {
-    widget.flutterBlue.startScan(timeout: Duration(seconds: 4));
-    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
-        //if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
-        if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
-          print(result.advertisementData.manufacturerData);
-          parseManufacturerData(result.advertisementData.manufacturerData);
-        }
-      }
-    });
+  Future<void> _incrementCounter() async {
+
+    if (noIsolateRunning = true){
+      SendPort toIsolate = await initIsolate();
+      toIsolate.send('Isolate started');
+      noIsolateRunning = false;
+    }
+
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -106,6 +105,39 @@ class _MyHomePageState extends State<MyHomePage> {
     print("Humidity: ${humidity.getUint16(0, Endian.little)/400} %");
     print("Temperature: ${temperature.getUint16(0, Endian.little)*0.005} \u{00B0}C");
     tempC = temperature.getUint16(0, Endian.little)*0.005;
+  }
+
+  Future<SendPort> initIsolate() async {
+    Completer completer = new Completer<SendPort>();
+    ReceivePort fromIsolate = ReceivePort();
+
+    fromIsolate.listen((data) {
+      if (data is SendPort) {
+        SendPort toIsolate = data;
+        completer.complete(toIsolate);
+      } else {
+        print(data);
+        widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
+        widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
+          if(notScanningYet){
+            notScanningYet = false;
+            for (ScanResult result in results) {
+              //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
+              //if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
+              if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
+                print(result.advertisementData.manufacturerData);
+                parseManufacturerData(result.advertisementData.manufacturerData);
+                setState(() {});
+              }
+            }
+          }
+        });
+        notScanningYet = true;
+      }
+    });
+
+    Isolate bluetoothIsolateInstance = await Isolate.spawn(bluetoothIsolate, fromIsolate.sendPort);
+    return completer.future;
   }
 
   @override
@@ -192,4 +224,16 @@ class _MyHomePageState extends State<MyHomePage> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+void bluetoothIsolate(SendPort fromIsolate) {
+  ReceivePort toIsolate = ReceivePort();
+  fromIsolate.send(toIsolate.sendPort);
+
+  toIsolate.listen((data) {
+    //todo Vastaanottaa RuuviTag device IDn
+    print('[mainToIsolateStream] $data');
+  });
+
+  Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Start scan'));
 }
