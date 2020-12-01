@@ -59,36 +59,27 @@ class GetData extends StatelessWidget {
   }
 }
 
-class PushData extends StatelessWidget{
+class PushData {
 
   final String deviceId;
   final double temperature;
-  final DateTime dateTime;
 
-  PushData(this.deviceId, this.temperature, this.dateTime);
+  PushData(this.deviceId, this.temperature);
 
-  @override
-  Widget build(BuildContext context) {
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
 
     Future<void> addValue() {
+
+      DateTime today = DateTime.now();
+      DateTime localDate = new DateTime(today.year, today.month, today.day);
+
       return values
           .add({
         'DeviceId': deviceId,
         'Temperature': temperature,
-        'Time': dateTime
+        'Time': localDate
       })
           .then((value) => print("Value Added"))
           .catchError((error) => print("Failed to add value: $error"));
     }
-
-    //Muuta nappisysteemi pois, addValue funktio pyöritetään heti kun mahdollista.
-    return FlatButton(
-      onPressed: addValue,
-      child: Text(
-        "Add Value",
-      ),
-    );
-  }
 }
-

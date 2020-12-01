@@ -184,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   Text("Tämän hetkinen lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
                   Text('$tempC \u{00B0}C', style: Theme.of(context).textTheme.headline4,),
-                  //PushData('herpaderpadöö', 21.2, Timestamp.now())
+                  //PushData('1', 27.2).addValue(); //Kovakoodatun arvon tilalle mittaavan laitteen id ja lämpötila
                 ],
               ),
               Column(
