@@ -79,8 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _incrementCounter() async {
-
-    if (noIsolateRunning = true){
+    CheckData("1", 22.5).dataCheck();
+    /*if (noIsolateRunning = true){
       SendPort toIsolate = await initIsolate();
       toIsolate.send('Isolate started');
       noIsolateRunning = false;
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-    });
+    });*/
   }
 
   parseManufacturerData(data) {
