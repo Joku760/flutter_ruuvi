@@ -90,77 +90,77 @@ class CheckData  {
 
   final String deviceId;
   final double temperature;
-
+  int counter = 0;
+  Map<String, dynamic> data1;
+  Map<String, dynamic> data2;
   CheckData(this.deviceId, this.temperature);
 
-    bool dataCheck() {
+  Future <bool> checkDataMain() async {
+    await dataGet();
+    bool data = await dataCheck();
+   return data;
+  }
 
-      int counter = 0;
-      Map<String, dynamic> data1;
-      Map<String, dynamic> data2;
+  Future<void> dataGet() async{
       DateTime today = DateTime.now();
       DateTime localDate = new DateTime(today.year, today.month, today.day);
       DateTime limiterDate = localDate.add(Duration(days: 1));
-
       CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
-      values.where('DeviceId', isEqualTo: deviceId).where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: true).limit(2).get()
-      .then((QuerySnapshot querySnapshot) => {
-      querySnapshot.docs.forEach((result) {
-        counter ++;
-        if(counter == 1)
+      await values.where('DeviceId', isEqualTo: deviceId).where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: true).limit(2).get()
+          .then((QuerySnapshot querySnapshot) => {
+        querySnapshot.docs.forEach((result) {
+          counter ++;
+          if(counter == 1)
           {
             data1 = result.data();
           }
-        if(counter == 2)
+          if(counter == 2)
           {
             data2 = result.data();
           }
-        Map<String, dynamic> data = result.data();
-         print(data.toString());
-         print(counter);
-      })
+          Map<String, dynamic> data = result.data();
+          print(data.toString());
+          print(counter);
+        })
       });
+    }
 
-if(counter == 0)
-  {
-    print('0');
-    return true;
-  }
-else if(counter == 1 && data1['Temperature'] != temperature)
-  {
-    print('1');
-    return true;
-  }
-else if(counter == 2)
-  {
-    if(data1['Temperature'] < temperature)
+  Future<bool> dataCheck() async {
+
+    if(counter == 0)
+    {
+      print('0');
+      return true;
+    }
+    else if(counter == 1 && data1['Temperature'] != temperature)
+    {
+      print('1');
+      return true;
+    }
+    else if(counter == 2)
+    {
+      if(data1['Temperature'] < temperature)
       {
         //poisto homma
         print('2iso');
         return true;
       }
-    else if(data2['Temperature'] > temperature)
-    {
-      //poisto homma
-      print('2pieni');
-      return true;
-    }
-    else
+      else if(data2['Temperature'] > temperature)
+      {
+        //poisto homma
+        print('2pieni');
+        return true;
+      }
+      else
       {
         print('2false');
         return false;
       }
-  }
-else{
-  print('false');
-  return false;
-}
     }
+    else{
+      print('false');
+      return false;
+    }
+  }
 
-    //Hae tietokannasta kaikki päivämäärän perusteella
-    //Jos löytyy 0 tai 1 arvoa, palauttaa true ja laittaa arvon tietokantaan
-    //Jos löytyy 2 tai useampi arvoa, vertailuun
-    //Vertaa lämpötilaa haettujen pienimpään ja suurimpaan
-    //jos ei mene vertailusta läpi, palauta false
-    //jos menee, palauta true ja poista edellinen suurin tai pienin arvo
 }
