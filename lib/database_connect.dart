@@ -33,16 +33,6 @@ class GetData extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
 
           final querySnapshot = snapshot.data;
-          querySnapshot.docs.forEach((result) {
-            Map<String, dynamic> data = result.data();
-
-           /* print(data.toString());
-            print(data['Time'].toString());
-            print(data['Time'].toDate().toString());
-            print(' ');*/
-
-          });
-          //print(localDate.toString());
           if(querySnapshot.docs.length != 0)
             {
               Map <String, dynamic> data = querySnapshot.docs[0].data();
@@ -69,11 +59,11 @@ class PushData {
 
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
 
-    Future<void> addValue() {
+    Future<void> addValue() async {
       DateTime today = DateTime.now();
       DateTime localDate = new DateTime(today.year, today.month, today.day);
-      //checkData
-      //if (checkdata == true){
+      bool checkData = await CheckData(deviceId, temperature).checkDataMain();
+      if (checkData == true){
       return values
           .add({
         'DeviceId': deviceId,
@@ -82,7 +72,7 @@ class PushData {
       })
           .then((value) => print("Value Added"))
           .catchError((error) => print("Failed to add value: $error"));
-    //}
+    }
     }
 }
 
@@ -93,6 +83,8 @@ class CheckData  {
   int counter = 0;
   Map<String, dynamic> data1;
   Map<String, dynamic> data2;
+  String data1Id;
+  String data2Id;
   CheckData(this.deviceId, this.temperature);
 
   Future <bool> checkDataMain() async {
@@ -113,14 +105,17 @@ class CheckData  {
           if(counter == 1)
           {
             data1 = result.data();
+            data1Id = result.id;
           }
           if(counter == 2)
           {
             data2 = result.data();
+            data2Id = result.id;
           }
-          Map<String, dynamic> data = result.data();
-          print(data.toString());
-          print(counter);
+          //Map<String, dynamic> data = result.data();
+          //print(data.toString());
+          //print(counter);
+
         })
       });
     }
@@ -129,38 +124,47 @@ class CheckData  {
 
     if(counter == 0)
     {
-      print('0');
+      print('Counter = 0');
       return true;
     }
     else if(counter == 1 && data1['Temperature'] != temperature)
     {
-      print('1');
+      print('Counter = 1');
       return true;
     }
     else if(counter == 2)
     {
       if(data1['Temperature'] < temperature)
       {
-        //poisto homma
-        print('2iso');
+        deleteData(data1Id);
+        print('Counter = 2, iso');
         return true;
       }
       else if(data2['Temperature'] > temperature)
       {
-        //poisto homma
-        print('2pieni');
+        deleteData(data2Id);
+        print('Counter = 2 pieni');
         return true;
       }
       else
       {
-        print('2false');
+        print('Counter = 2 false');
         return false;
       }
     }
     else{
-      print('false');
+      print('Counter = 1, lämpötila on jo tietokannassa');
       return false;
     }
   }
 
+  void deleteData(String documentId)
+  {
+    print(documentId);
+    CollectionReference users = FirebaseFirestore.instance.collection('RuuviData');
+          users.doc(documentId)
+          .delete()
+          .then((value) => print("Doc Deleted"))
+          .catchError((error) => print("Failed to delete Doc: $error"));
+  }
 }
