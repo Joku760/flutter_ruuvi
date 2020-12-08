@@ -10,6 +10,8 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart' show CalendarCarousel;
 import 'package:flutter_calendar_carousel/classes/event.dart';
+import 'package:numberpicker/numberpicker.dart';
+
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+        initialRoute: '/',
+        routes: {
+        '/': (context) => MyHomePage(),
+        '/second': (context) => SecondRoute(),
+        '/third': (context) => ThirdRoute(),
+        },
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -35,13 +43,13 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Ruuvi Project'),
+      //home: MyHomePage(title: 'Flutter Ruuvi Project'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -52,15 +60,74 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-  final FlutterBlue flutterBlue = FlutterBlue.instance;
-  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
+  //final String title;
+  //final FlutterBlue flutterBlue = FlutterBlue.instance;
+  //final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text('Valitse sovellus'),
+        centerTitle: true,
+      ),
+      body: Center(
+          child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            RaisedButton(
+              child: Text('Sääkalenteri'),
+              onPressed: () {
+                Navigator.pushNamed(context, '/second');
+              },
+            ),
+            RaisedButton(
+              child: Text('Saunamittari'),
+              onPressed: () {
+                Navigator.pushNamed(context, '/third');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SecondRoute extends StatefulWidget{
+  SecondRoute({Key key}) : super(key: key);
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  //final String title;
+  final FlutterBlue flutterBlue = FlutterBlue.instance;
+  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
+
+  @override
+  _SecondRouteState createState() => _SecondRouteState();
+}
+
+class _SecondRouteState extends State<SecondRoute> {
   int _counter = 0;
   double tempC = 0;
   bool noIsolateRunning = true;
@@ -151,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Sääkalenteri'),
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: handleClick,
@@ -235,4 +302,54 @@ void bluetoothIsolate(SendPort fromIsolate) {
   });
 
   Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Start scan'));
+}
+
+class ThirdRoute extends StatefulWidget{
+  ThirdRoute({Key key}) : super(key: key);
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  //final String title;
+  //final FlutterBlue flutterBlue = FlutterBlue.instance;
+  //final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
+
+  @override
+  _ThirdRouteState createState() => _ThirdRouteState();
+}
+
+class _ThirdRouteState extends State<ThirdRoute> {
+  double _currentValue = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Saunamittari'),
+        centerTitle: true,
+        backgroundColor: Colors.green,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Text("Valitse lämpötila"),
+            NumberPicker.decimal(
+                initialValue: _currentValue,
+                minValue: 0,
+                maxValue: 100,
+                onChanged: (newValue) =>
+                    setState(() => _currentValue = newValue)),
+             Text("Current number: $_currentValue"),
+          ],
+        ),
+      ),
+    );
+  }
 }
