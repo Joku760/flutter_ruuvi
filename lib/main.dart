@@ -146,6 +146,7 @@ class _SecondRouteState extends State<SecondRoute> {
   }
 
   Future<void> _incrementCounter() async {
+    //PushData("1", 27.4).addValue(); //kovakoodattujen arvojen tilalle laitteen id, ja mitattu lämpötila
     if (noIsolateRunning = true){
       SendPort toIsolate = await initIsolate();
       toIsolate.send('Isolate started');
@@ -250,7 +251,6 @@ class _SecondRouteState extends State<SecondRoute> {
                 children: <Widget>[
                   Text("Tämän hetkinen lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
                   Text('$tempC \u{00B0}C', style: Theme.of(context).textTheme.headline4,),
-                  //PushData('1', 27.2).addValue(); //Kovakoodatun arvon tilalle mittaavan laitteen id ja lämpötila
                 ],
               ),
               Column(

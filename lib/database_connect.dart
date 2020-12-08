@@ -33,16 +33,6 @@ class GetData extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
 
           final querySnapshot = snapshot.data;
-          querySnapshot.docs.forEach((result) {
-            Map<String, dynamic> data = result.data();
-
-           /* print(data.toString());
-            print(data['Time'].toString());
-            print(data['Time'].toDate().toString());
-            print(' ');*/
-
-          });
-          //print(localDate.toString());
           if(querySnapshot.docs.length != 0)
             {
               Map <String, dynamic> data = querySnapshot.docs[0].data();
@@ -69,11 +59,11 @@ class PushData {
 
     CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
 
-    Future<void> addValue() {
+    Future<void> addValue() async {
       DateTime today = DateTime.now();
       DateTime localDate = new DateTime(today.year, today.month, today.day);
-      //checkData
-      //if (checkdata == true){
+      bool checkData = await CheckData(deviceId, temperature).checkDataMain();
+      if (checkData == true){
       return values
           .add({
         'DeviceId': deviceId,
@@ -82,7 +72,7 @@ class PushData {
       })
           .then((value) => print("Value Added"))
           .catchError((error) => print("Failed to add value: $error"));
-    //}
+    }
     }
 }
 
@@ -90,77 +80,91 @@ class CheckData  {
 
   final String deviceId;
   final double temperature;
-
+  int counter = 0;
+  Map<String, dynamic> data1;
+  Map<String, dynamic> data2;
+  String data1Id;
+  String data2Id;
   CheckData(this.deviceId, this.temperature);
 
-    bool dataCheck() {
+  Future <bool> checkDataMain() async {
+    await dataGet();
+    bool data = await dataCheck();
+   return data;
+  }
 
-      int counter = 0;
-      Map<String, dynamic> data1;
-      Map<String, dynamic> data2;
+  Future<void> dataGet() async{
       DateTime today = DateTime.now();
       DateTime localDate = new DateTime(today.year, today.month, today.day);
       DateTime limiterDate = localDate.add(Duration(days: 1));
-
       CollectionReference values = FirebaseFirestore.instance.collection('RuuviData');
-      values.where('DeviceId', isEqualTo: deviceId).where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: true).limit(2).get()
-      .then((QuerySnapshot querySnapshot) => {
-      querySnapshot.docs.forEach((result) {
-        counter ++;
-        if(counter == 1)
+      await values.where('DeviceId', isEqualTo: deviceId).where('Time', isGreaterThanOrEqualTo: localDate).where('Time', isLessThan: limiterDate).orderBy('Time').orderBy('Temperature', descending: true).limit(2).get()
+          .then((QuerySnapshot querySnapshot) => {
+        querySnapshot.docs.forEach((result) {
+          counter ++;
+          if(counter == 1)
           {
             data1 = result.data();
+            data1Id = result.id;
           }
-        if(counter == 2)
+          if(counter == 2)
           {
             data2 = result.data();
+            data2Id = result.id;
           }
-        Map<String, dynamic> data = result.data();
-         print(data.toString());
-         print(counter);
-      })
-      });
+          //Map<String, dynamic> data = result.data();
+          //print(data.toString());
+          //print(counter);
 
-if(counter == 0)
-  {
-    print('0');
-    return true;
-  }
-else if(counter == 1 && data1['Temperature'] != temperature)
-  {
-    print('1');
-    return true;
-  }
-else if(counter == 2)
-  {
-    if(data1['Temperature'] < temperature)
-      {
-        //poisto homma
-        print('2iso');
-        return true;
-      }
-    else if(data2['Temperature'] > temperature)
+        })
+      });
+    }
+
+  Future<bool> dataCheck() async {
+
+    if(counter == 0)
     {
-      //poisto homma
-      print('2pieni');
+      print('Counter = 0');
       return true;
     }
-    else
+    else if(counter == 1 && data1['Temperature'] != temperature)
+    {
+      print('Counter = 1');
+      return true;
+    }
+    else if(counter == 2)
+    {
+      if(data1['Temperature'] < temperature)
       {
-        print('2false');
+        deleteData(data1Id);
+        print('Counter = 2, iso');
+        return true;
+      }
+      else if(data2['Temperature'] > temperature)
+      {
+        deleteData(data2Id);
+        print('Counter = 2 pieni');
+        return true;
+      }
+      else
+      {
+        print('Counter = 2 false');
         return false;
       }
-  }
-else{
-  print('false');
-  return false;
-}
     }
+    else{
+      print('Counter = 1, lämpötila on jo tietokannassa');
+      return false;
+    }
+  }
 
-    //Hae tietokannasta kaikki päivämäärän perusteella
-    //Jos löytyy 0 tai 1 arvoa, palauttaa true ja laittaa arvon tietokantaan
-    //Jos löytyy 2 tai useampi arvoa, vertailuun
-    //Vertaa lämpötilaa haettujen pienimpään ja suurimpaan
-    //jos ei mene vertailusta läpi, palauta false
-    //jos menee, palauta true ja poista edellinen suurin tai pienin arvo
+  void deleteData(String documentId)
+  {
+    print(documentId);
+    CollectionReference users = FirebaseFirestore.instance.collection('RuuviData');
+          users.doc(documentId)
+          .delete()
+          .then((value) => print("Doc Deleted"))
+          .catchError((error) => print("Failed to delete Doc: $error"));
+  }
 }
