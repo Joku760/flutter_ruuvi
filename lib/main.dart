@@ -23,6 +23,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    var routes = <String, WidgetBuilder>{
+      Settings.routeName: (BuildContext context) => new Settings(title: "Settings"),
+    };
     return MaterialApp(
       title: 'Flutter Demo',
         initialRoute: '/',
@@ -121,7 +124,6 @@ class SecondRoute extends StatefulWidget{
 
   //final String title;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
-  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 
   @override
   _SecondRouteState createState() => _SecondRouteState();
@@ -132,6 +134,7 @@ class _SecondRouteState extends State<SecondRoute> {
   double tempC = 0;
   bool noIsolateRunning = true;
   bool notScanningYet = true;
+  Isolate isolate;
 
   var _currentDate = new DateTime.now();
   DateTime dateValue; //valittu päivämäärä
@@ -203,9 +206,11 @@ class _SecondRouteState extends State<SecondRoute> {
       }
     });
 
-    Isolate bluetoothIsolateInstance = await Isolate.spawn(bluetoothIsolate, fromIsolate.sendPort);
+    isolate = await Isolate.spawn(bluetoothIsolate, fromIsolate.sendPort);
     return completer.future;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +227,12 @@ class _SecondRouteState extends State<SecondRoute> {
         title: Text('Sääkalenteri'),
         actions: <Widget>[
           PopupMenuButton<String>(
-            onSelected: handleClick,
+            onSelected: (value) {
+              if (value.contains('Settings')) {
+                Navigator.pushNamed(context, Settings.routeName);
+                isolate.kill();
+              }
+            },
             itemBuilder: (BuildContext context) {
               return {'Logout', 'Settings'}.map((String choice) {
                 return PopupMenuItem<String>(
@@ -300,6 +310,8 @@ void bluetoothIsolate(SendPort fromIsolate) {
     //todo Vastaanottaa RuuviTag device IDn
     print('[mainToIsolateStream] $data');
   });
+
+
 
   Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Start scan'));
 }
