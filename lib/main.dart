@@ -205,7 +205,6 @@ class _SecondRouteState extends State<SecondRoute> {
   }
 
   Future<void> _incrementCounter() async {
-    //PushData("1", 27.4).addValue(); //kovakoodattujen arvojen tilalle laitteen id, ja mitattu lämpötila
     if (noIsolateRunning = true){
       SendPort toIsolate = await initIsolate();
       toIsolate.send('Isolate started');
@@ -233,6 +232,7 @@ class _SecondRouteState extends State<SecondRoute> {
     print("Humidity: ${humidity.getUint16(0, Endian.little)/400} %");
     print("Temperature: ${temperature.getUint16(0, Endian.little)*0.005} \u{00B0}C");
     tempC = temperature.getUint16(0, Endian.little)*0.005;
+    PushData(widget.id, tempC).addValue();
   }
 
   Future<SendPort> initIsolate() async {
@@ -308,7 +308,7 @@ class _SecondRouteState extends State<SecondRoute> {
               Column(
                 children: <Widget>[
                   Text("Ylin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  GetData(true, dateValue, '1'), //Kovakoodatun arvon tilalle laitteen id
+                  GetData(true, dateValue, widget.id),
                 ],
               ),
               Column(
@@ -320,7 +320,7 @@ class _SecondRouteState extends State<SecondRoute> {
               Column(
                 children: <Widget>[
                   Text("Alin lämpötila",style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),),
-                  GetData(false, dateValue, '1'), //kovakoodatun arvon tilalle laitteen id
+                  GetData(false, dateValue, widget.id),
                 ],
               ),
             ],
