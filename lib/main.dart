@@ -23,15 +23,12 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    var routes = <String, WidgetBuilder>{
-      Settings.routeName: (BuildContext context) => new Settings(title: "Settings"),
-    };
     return MaterialApp(
       title: 'Flutter Demo',
         initialRoute: '/',
         routes: {
         '/': (context) => MyHomePage(),
-        '/second': (context) => SecondRoute(),
+        //'/second': (context) => SecondRoute(),  //Piti laittaa kommenttiin että 'onGenerateRoute' toimii oikein ja antaa ID:n eteenpäin
         '/third': (context) => ThirdRoute(),
         },
       theme: ThemeData(
@@ -46,6 +43,20 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
+      onGenerateRoute: (settings) {
+        if (settings.name == SecondRoute.routeName) {
+          final PassID args = settings.arguments;
+          return MaterialPageRoute(
+            builder: (context) {
+              return SecondRoute(
+                  id: args.id
+              );
+            },
+          );
+        }
+        assert(false, 'Need to implement ${settings.name}');
+        return null;
+      }
       //home: MyHomePage(title: 'Flutter Ruuvi Project'),
     );
   }
@@ -72,6 +83,32 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  List<String> deviceList = new List<String>();
+  String idChoice;
+
+  @override
+  void initState(){
+    super.initState();
+    FlutterBlue.instance.scanResults.listen((List<ScanResult> results) {
+      for (ScanResult result in results) {
+        if (result.advertisementData.toString().contains('1177')) {
+          addToList(result.device.id.toString());
+        }
+      }
+    });
+    FlutterBlue.instance.startScan(timeout: Duration(seconds: 3));
+  }
+
+  addToList(String id) {
+    if (!deviceList.contains(id)) {
+      setState(() {
+        deviceList.add(id);
+        print(deviceList);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -88,13 +125,15 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body: Center(
-          child: Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
+          children: [
             RaisedButton(
               child: Text('Sääkalenteri'),
               onPressed: () {
-                Navigator.pushNamed(context, '/second');
+                print('Passing ID:');
+                print(idChoice);
+                Navigator.pushNamed(context, '/second', arguments: PassID(idChoice));
               },
             ),
             RaisedButton(
@@ -103,6 +142,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.pushNamed(context, '/third');
               },
             ),
+            for (String id in deviceList) new ListTile(
+              title: Text(id),
+              leading: Radio(
+                value: id,
+                groupValue: idChoice,
+                onChanged: (value) {
+                  setState(() {
+                    idChoice = value;
+                    print(idChoice);
+                  });
+                },
+              ),
+            )
           ],
         ),
       ),
@@ -111,7 +163,11 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class SecondRoute extends StatefulWidget{
-  SecondRoute({Key key}) : super(key: key);
+  static const routeName = '/second';
+  SecondRoute({
+    Key key,
+    this.id,
+  }) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -122,7 +178,7 @@ class SecondRoute extends StatefulWidget{
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  //final String title;
+  final String id;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
 
   @override
@@ -155,6 +211,8 @@ class _SecondRouteState extends State<SecondRoute> {
       toIsolate.send('Isolate started');
       noIsolateRunning = false;
     }
+    print('ID is this:');
+    print(widget.id);
 
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -192,9 +250,8 @@ class _SecondRouteState extends State<SecondRoute> {
           if(notScanningYet){
             notScanningYet = false;
             for (ScanResult result in results) {
-              //if (result.device.id.toString().contains('E6:C0:0A:82:3C:3F')) {
-              //if (result.device.id.toString().contains('E4:FA:5E:EE:BF:D8')) {
-              if (result.device.id.toString().contains('D9:E5:26:B2:B0:09')) {
+              //'D9:E5:26:B2:B0:09' : 'E6:C0:0A:82:3C:3F' : 'E4:FA:5E:EE:BF:D8'   Just in case vielä ID:t tallessa nopeasti saatavilla
+              if (result.device.id.toString().contains(widget.id)) {
                 print(result.advertisementData.manufacturerData);
                 parseManufacturerData(result.advertisementData.manufacturerData);
                 setState(() {});
@@ -228,10 +285,7 @@ class _SecondRouteState extends State<SecondRoute> {
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value.contains('Settings')) {
-                Navigator.pushNamed(context, Settings.routeName);
-                isolate.kill();
-              }
+              //Do something with selection
             },
             itemBuilder: (BuildContext context) {
               return {'Logout', 'Settings'}.map((String choice) {
@@ -307,7 +361,6 @@ void bluetoothIsolate(SendPort fromIsolate) {
   fromIsolate.send(toIsolate.sendPort);
 
   toIsolate.listen((data) {
-    //todo Vastaanottaa RuuviTag device IDn
     print('[mainToIsolateStream] $data');
   });
 
@@ -364,4 +417,10 @@ class _ThirdRouteState extends State<ThirdRoute> {
       ),
     );
   }
+}
+
+class PassID {
+  String id;
+
+  PassID(this.id);
 }
