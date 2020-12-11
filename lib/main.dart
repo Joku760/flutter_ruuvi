@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     });
-    FlutterBlue.instance.startScan(timeout: Duration(seconds: 3));
+    FlutterBlue.instance.startScan();
   }
 
   addToList(String id) {
@@ -107,6 +107,26 @@ class _MyHomePageState extends State<MyHomePage> {
         print(deviceList);
       });
     }
+  }
+
+  alertWindow() {
+    showDialog(
+      context: context,
+      builder: (context) => new AlertDialog(
+        title: new Text('Virhe'),
+        content: Text(
+            'Valitse ensin RuuviTag.'),
+        actions: <Widget>[
+          new FlatButton(
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true)
+                  .pop(); // dismisses only the dialog and returns nothing
+            },
+            child: new Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -131,14 +151,21 @@ class _MyHomePageState extends State<MyHomePage> {
             RaisedButton(
               child: Text('Sääkalenteri'),
               onPressed: () {
-                print('Passing ID:');
-                print(idChoice);
-                Navigator.pushNamed(context, '/second', arguments: PassID(idChoice));
+                if (idChoice == null){
+                  alertWindow();
+                } else {
+                  FlutterBlue.instance.stopScan();
+                  print('Passing ID:');
+                  print(idChoice);
+                  Navigator.pushReplacementNamed(
+                      context, '/second', arguments: PassID(idChoice));
+                }
               },
             ),
             RaisedButton(
               child: Text('Saunamittari'),
               onPressed: () {
+                FlutterBlue.instance.stopScan();
                 Navigator.pushNamed(context, '/third');
               },
             ),
@@ -188,7 +215,6 @@ class SecondRoute extends StatefulWidget{
 class _SecondRouteState extends State<SecondRoute> {
   int _counter = 0;
   double tempC = 0;
-  bool noIsolateRunning = true;
   bool notScanningYet = true;
   Isolate isolate;
 
@@ -204,12 +230,28 @@ class _SecondRouteState extends State<SecondRoute> {
     }
   }
 
+  @override
+  void initState(){
+    super.initState();
+    /*
+    widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
+    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
+      for (ScanResult result in results) {
+        if (result.device.id.toString().contains(widget.id)) {
+          print(result.advertisementData.manufacturerData);
+          parseManufacturerData(result.advertisementData.manufacturerData);
+          setState(() {});
+        }
+      }
+    });
+    */
+    initIsolate();
+  }
+
   Future<void> _incrementCounter() async {
-    if (noIsolateRunning = true){
-      SendPort toIsolate = await initIsolate();
-      toIsolate.send('Isolate started');
-      noIsolateRunning = false;
-    }
+    /*
+    SendPort toIsolate = await initIsolate();
+    toIsolate.send('Isolate started');
     print('ID is this:');
     print(widget.id);
 
@@ -221,6 +263,7 @@ class _SecondRouteState extends State<SecondRoute> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+    */
   }
 
   parseManufacturerData(data) {
@@ -364,9 +407,9 @@ void bluetoothIsolate(SendPort fromIsolate) {
     print('[mainToIsolateStream] $data');
   });
 
+  fromIsolate.send('Initial scan');
 
-
-  Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Start scan'));
+  Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Continuous scan'));
 }
 
 class ThirdRoute extends StatefulWidget{
