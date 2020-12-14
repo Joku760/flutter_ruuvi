@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:isolate';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ruuvi/database_connect.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,19 +30,8 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
         '/': (context) => MyHomePage(),
-        //'/second': (context) => SecondRoute(),  //Piti laittaa kommenttiin että 'onGenerateRoute' toimii oikein ja antaa ID:n eteenpäin
-        //'/third': (context) => ThirdRoute(),
         },
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       onGenerateRoute: (settings) {
@@ -78,19 +65,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  //final String title;
-  //final FlutterBlue flutterBlue = FlutterBlue.instance;
-  //final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -197,16 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text('Valitse sovellus'),
         centerTitle: true,
       ),
@@ -269,15 +235,6 @@ class SecondRoute extends StatefulWidget{
     this.id,
   }) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String id;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
 
@@ -286,57 +243,18 @@ class SecondRoute extends StatefulWidget{
 }
 
 class _SecondRouteState extends State<SecondRoute> {
-  int _counter = 0;
   double tempC = 0;
   bool notScanningYet = true;
-  Isolate isolate;
+  Timer timer;
 
   var _currentDate = new DateTime.now();
   DateTime dateValue; //valittu päivämäärä
 
-  void handleClick(String value) {
-    switch (value) {
-      case 'Settings':
-        break;
-      case 'Logout':
-        break;
-    }
-  }
-
   @override
   void initState(){
     super.initState();
-    /*
-    widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
-    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        if (result.device.id.toString().contains(widget.id)) {
-          print(result.advertisementData.manufacturerData);
-          parseManufacturerData(result.advertisementData.manufacturerData);
-          setState(() {});
-        }
-      }
-    });
-    */
-    initIsolate();
-  }
-
-  Future<void> _incrementCounter() async {
-    /*
-    SendPort toIsolate = await initIsolate();
-    toIsolate.send('Isolate started');
-    print('ID is this:');
-    print(widget.id);
-
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-    */
+    startScan();
+    timer = Timer.periodic(Duration(seconds:10),(timer) => startScan());
   }
 
   parseManufacturerData(data) {
@@ -351,60 +269,39 @@ class _SecondRouteState extends State<SecondRoute> {
     PushData(widget.id, tempC).addValue();
   }
 
-  Future<SendPort> initIsolate() async {
-    Completer completer = new Completer<SendPort>();
-    ReceivePort fromIsolate = ReceivePort();
-
-    fromIsolate.listen((data) {
-      if (data is SendPort) {
-        SendPort toIsolate = data;
-        completer.complete(toIsolate);
-      } else {
-        print(data);
-        widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
-        widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-          if(notScanningYet){
-            notScanningYet = false;
-            for (ScanResult result in results) {
-              //'D9:E5:26:B2:B0:09' : 'E6:C0:0A:82:3C:3F' : 'E4:FA:5E:EE:BF:D8'   Just in case vielä ID:t tallessa nopeasti saatavilla
-              if (result.device.id.toString().contains(widget.id)) {
-                print(result.advertisementData.manufacturerData);
-                parseManufacturerData(result.advertisementData.manufacturerData);
-                setState(() {});
-              }
-            }
+  startScan(){
+    widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
+    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
+      if(notScanningYet){
+        notScanningYet = false;
+        for (ScanResult result in results) {
+          //'D9:E5:26:B2:B0:09' : 'E6:C0:0A:82:3C:3F' : 'E4:FA:5E:EE:BF:D8'   Just in case vielä ID:t tallessa nopeasti saatavilla
+          if (result.device.id.toString().contains(widget.id)) {
+            print(result.advertisementData.manufacturerData);
+            parseManufacturerData(result.advertisementData.manufacturerData);
+            setState(() {});
           }
-        });
-        notScanningYet = true;
+        }
       }
     });
-
-    isolate = await Isolate.spawn(bluetoothIsolate, fromIsolate.sendPort);
-    return completer.future;
+    notScanningYet = true;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text('Sääkalenteri'),
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: (value) {
-              //Do something with selection
+              if (value == 'Etusivu') {
+                timer.cancel();
+                Navigator.pushReplacementNamed(context, '/');
+              }
             },
             itemBuilder: (BuildContext context) {
-              return {'Logout', 'Settings'}.map((String choice) {
+              return {'Etusivu'}.map((String choice) {
                 return PopupMenuItem<String>(
                   value: choice,
                   child: Text(choice),
@@ -463,44 +360,13 @@ class _SecondRouteState extends State<SecondRoute> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-}
-
-void bluetoothIsolate(SendPort fromIsolate) {
-  ReceivePort toIsolate = ReceivePort();
-  fromIsolate.send(toIsolate.sendPort);
-
-  toIsolate.listen((data) {
-    print('[mainToIsolateStream] $data');
-  });
-
-  fromIsolate.send('Initial scan');
-
-  Timer.periodic(Duration(seconds:10),(timer)=>fromIsolate.send('Continuous scan'));
 }
 
 class ThirdRoute extends StatefulWidget{
   static const routeName = '/third';
   ThirdRoute({Key key, this.id}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  //final String title;
-  //final FlutterBlue flutterBlue = FlutterBlue.instance;
-  //final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
 
   final String id;
   final FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -512,7 +378,6 @@ class ThirdRoute extends StatefulWidget{
 class _ThirdRouteState extends State<ThirdRoute> {
   double tempC = 0;
   bool notScanningYet = true;
-  Isolate isolate;
 
   double _currentValue = 1.0;
   int page = 1;
@@ -523,38 +388,29 @@ class _ThirdRouteState extends State<ThirdRoute> {
   @override
   void initState(){
     super.initState();
-    /*
+    startScan();
+    timer = Timer.periodic(Duration(seconds:10),(timer) {
+      startScan();
+      temperatureCheck();
+    });
+  }
+
+  startScan(){
     widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
     widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        if (result.device.id.toString().contains(widget.id)) {
-          print(result.advertisementData.manufacturerData);
-          parseManufacturerData(result.advertisementData.manufacturerData);
-          setState(() {});
+      if(notScanningYet){
+        notScanningYet = false;
+        for (ScanResult result in results) {
+          //'D9:E5:26:B2:B0:09' : 'E6:C0:0A:82:3C:3F' : 'E4:FA:5E:EE:BF:D8'   Just in case vielä ID:t tallessa nopeasti saatavilla
+          if (result.device.id.toString().contains(widget.id)) {
+            print(result.advertisementData.manufacturerData);
+            parseManufacturerData(result.advertisementData.manufacturerData);
+            setState(() {});
+          }
         }
       }
     });
-    */
-    initIsolate();
-    timer = Timer.periodic(Duration(seconds: 1), (Timer t) => temperatureCheck());
-  }
-
-  Future<void> _incrementCounter() async {
-    /*
-    SendPort toIsolate = await initIsolate();
-    toIsolate.send('Isolate started');
-    print('ID is this:');
-    print(widget.id);
-
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-    */
+    notScanningYet = true;
   }
 
   parseManufacturerData(data) {
@@ -566,39 +422,6 @@ class _ThirdRouteState extends State<ThirdRoute> {
     print("Humidity: ${humidity.getUint16(0, Endian.little)/400} %");
     print("Temperature: ${temperature.getUint16(0, Endian.little)*0.005} \u{00B0}C");
     tempC = temperature.getUint16(0, Endian.little)*0.005;
-    PushData(widget.id, tempC).addValue();
-  }
-
-  Future<SendPort> initIsolate() async {
-    Completer completer = new Completer<SendPort>();
-    ReceivePort fromIsolate = ReceivePort();
-
-    fromIsolate.listen((data) {
-      if (data is SendPort) {
-        SendPort toIsolate = data;
-        completer.complete(toIsolate);
-      } else {
-        print(data);
-        widget.flutterBlue.startScan(timeout: Duration(seconds: 3));
-        widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
-          if(notScanningYet){
-            notScanningYet = false;
-            for (ScanResult result in results) {
-              //'D9:E5:26:B2:B0:09' : 'E6:C0:0A:82:3C:3F' : 'E4:FA:5E:EE:BF:D8'   Just in case vielä ID:t tallessa nopeasti saatavilla
-              if (result.device.id.toString().contains(widget.id)) {
-                print(result.advertisementData.manufacturerData);
-                parseManufacturerData(result.advertisementData.manufacturerData);
-                setState(() {});
-              }
-            }
-          }
-        });
-        notScanningYet = true;
-      }
-    });
-
-    isolate = await Isolate.spawn(bluetoothIsolate, fromIsolate.sendPort);
-    return completer.future;
   }
 
   void temperatureCheck(){
