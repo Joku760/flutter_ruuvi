@@ -12,6 +12,7 @@ import 'package:numberpicker/numberpicker.dart';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 
 
@@ -169,6 +170,31 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  bluetoothDevices() {
+    AwesomeDialog(
+      context: context,
+      animType: AnimType.SCALE,
+      dialogType: DialogType.INFO,
+      body: Center(child: Column(children: [for (String id in deviceList) new ListTile(
+        title: Text(id),
+        leading: Radio(
+          value: id,
+          groupValue: idChoice,
+          onChanged: (value) {
+            setState(() {
+              idChoice = value;
+              print(idChoice);
+            });
+          },
+        ),
+      )],),),
+      title: 'This is Ignored',
+      desc:   'This is also Ignored',
+      btnOkOnPress: () {
+      },
+    )..show();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,19 +283,12 @@ class _MyHomePageState extends State<MyHomePage> {
             }
             ),
             Text("bluetooth laitteet:"),
-            for (String id in deviceList) new ListTile(
-              title: Text(id),
-              leading: Radio(
-                value: id,
-                groupValue: idChoice,
-                onChanged: (value) {
-                  setState(() {
-                    idChoice = value;
-                    print(idChoice);
-                  });
-                },
-              ),
-            )
+            RaisedButton(
+              child: Text('Bluetooth laitteet'),
+              onPressed: () {
+                 bluetoothDevices();
+              },
+            ),
           ],
         ),
       ),
