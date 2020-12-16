@@ -151,26 +151,52 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   alertWindow() {
-    showDialog(
-      context: context,
-      builder: (context) => new AlertDialog(
-        title: new Text('Virhe'),
-        content: Text(
-            'Valitse ensin RuuviTag.'),
-        actions: <Widget>[
-          new FlatButton(
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true)
-                  .pop(); // dismisses only the dialog and returns nothing
-            },
-            child: new Text('OK'),
-          ),
-        ],
-      ),
-    );
+    AwesomeDialog(
+        context: context,
+        dialogType: DialogType.ERROR,
+        headerAnimationLoop: false,
+        animType: AnimType.TOPSLIDE,
+        title: 'Virhe',
+        desc:
+        'Valitse ensin bluetooth laite.',
+        btnOkOnPress: () {})
+      ..show();
   }
 
-  bluetoothDevices() {
+ Future<void> bluetoothDevices() async{
+    return await showDialog(context: context,
+      builder: (context){
+      return StatefulBuilder(builder: (context,setState){
+        return AlertDialog(
+          title: new Text('Bluetooth laitteet'),
+          content: Center(child: Column(children: [for (String id in deviceList) new ListTile(
+            title: Text(id),
+            leading: Radio(
+              value: id,
+              groupValue: idChoice,
+              onChanged: (value) {
+                setState(() {
+                  idChoice = value;
+                  print(idChoice);
+                });
+              },
+            ),
+          )],),),
+          actions: <Widget>[
+            new FlatButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true)
+                    .pop(); // dismisses only the dialog and returns nothing
+              },
+              child: new Text('OK'),
+            ),
+          ],
+        );
+      });
+      });
+  }
+
+  /*bluetoothDevices() {
     AwesomeDialog(
       context: context,
       animType: AnimType.SCALE,
@@ -193,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
       btnOkOnPress: () {
       },
     )..show();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -282,13 +308,28 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             }
             ),
-            Text("bluetooth laitteet:"),
-            RaisedButton(
-              child: Text('Bluetooth laitteet'),
-              onPressed: () {
-                 bluetoothDevices();
-              },
+            GestureDetector(
+                child: Container(
+                    child: Center(child: Text("", textAlign: TextAlign.center, style: TextStyle(fontSize: 25.0, color: Colors.white)),), // button text
+                    width: 480,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      image: DecorationImage(
+                          image:AssetImage("assets/images/testikuva3.jpg"),
+                          fit:BoxFit.cover
+                      ),
+                    )
+                ),onTap:() async{
+              await bluetoothDevices();
+            }
             ),
+            /*RaisedButton(
+              child: Text('Bluetooth laitteet'),
+              onPressed: () async{
+                 await bluetoothDevices();
+              },
+            ),*/
           ],
         ),
       ),

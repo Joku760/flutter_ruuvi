@@ -51,6 +51,7 @@ flutter:
   assets:
     - assets/images/testikuva.jpg
     - assets/images/testikuva2.jpg
+    - assets/images/testikuva3.jpg
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
