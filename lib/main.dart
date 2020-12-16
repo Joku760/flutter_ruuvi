@@ -178,9 +178,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            RaisedButton(
+            /*RaisedButton(
               child: Text('Sääkalenteri'),
               onPressed: () {
                 if (idChoice == null){
@@ -193,8 +193,32 @@ class _MyHomePageState extends State<MyHomePage> {
                       context, '/second', arguments: PassID(idChoice));
                 }
               },
+            ),*/
+            GestureDetector(
+                child: Container(
+                    child: Center(child: Text("Sääkalenteri", textAlign: TextAlign.center, style: TextStyle(fontSize: 25.0, color: Colors.white)),),
+                    width: 480,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      image: DecorationImage(
+                          image:AssetImage("assets/images/testikuva2.jpg"),
+                          fit:BoxFit.cover
+                      ),
+                    )
+                ),onTap:(){
+              if (idChoice == null){
+                alertWindow();
+              } else {
+                FlutterBlue.instance.stopScan();
+                print('Passing ID:');
+                print(idChoice);
+                Navigator.pushReplacementNamed(
+                    context, '/second', arguments: PassID(idChoice));
+              }
+            }
             ),
-            RaisedButton(
+            /*RaisedButton(
               child: Text('Saunamittari'),
               onPressed: () {
                 if (idChoice == null){
@@ -207,7 +231,32 @@ class _MyHomePageState extends State<MyHomePage> {
                       context, '/third', arguments: PassID(idChoice));
                 }
               },
+            ),*/
+            GestureDetector(
+                child: Container(
+                    child: Center(child: Text("Saunamittari", textAlign: TextAlign.center, style: TextStyle(fontSize: 25.0, color: Colors.white)),), // button text
+                    width: 480,
+                    height: 200,
+                    decoration: BoxDecoration(
+                        color: Colors.black,
+                        image: DecorationImage(
+                            image:AssetImage("assets/images/testikuva.jpg"),
+                            fit:BoxFit.cover
+                        ),
+                    )
+                ),onTap:(){
+              if (idChoice == null){
+                alertWindow();
+              } else {
+                FlutterBlue.instance.stopScan();
+                print('Passing ID:');
+                print(idChoice);
+                Navigator.pushReplacementNamed(
+                    context, '/third', arguments: PassID(idChoice));
+              }
+            }
             ),
+            Text("bluetooth laitteet:"),
             for (String id in deviceList) new ListTile(
               title: Text(id),
               leading: Radio(
