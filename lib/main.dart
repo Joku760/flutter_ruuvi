@@ -196,31 +196,6 @@ class _MyHomePageState extends State<MyHomePage> {
       });
   }
 
-  /*bluetoothDevices() {
-    AwesomeDialog(
-      context: context,
-      animType: AnimType.SCALE,
-      dialogType: DialogType.INFO,
-      body: Center(child: Column(children: [for (String id in deviceList) new ListTile(
-        title: Text(id),
-        leading: Radio(
-          value: id,
-          groupValue: idChoice,
-          onChanged: (value) {
-            setState(() {
-              idChoice = value;
-              print(idChoice);
-            });
-          },
-        ),
-      )],),),
-      title: 'This is Ignored',
-      desc:   'This is also Ignored',
-      btnOkOnPress: () {
-      },
-    )..show();
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,20 +207,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            /*RaisedButton(
-              child: Text('Sääkalenteri'),
-              onPressed: () {
-                if (idChoice == null){
-                  alertWindow();
-                } else {
-                  FlutterBlue.instance.stopScan();
-                  print('Passing ID:');
-                  print(idChoice);
-                  Navigator.pushReplacementNamed(
-                      context, '/second', arguments: PassID(idChoice));
-                }
-              },
-            ),*/
             GestureDetector(
                 child: Container(
                     child: Center(child: Text("Sääkalenteri", textAlign: TextAlign.center, style: TextStyle(fontSize: 25.0, color: Colors.white)),),
@@ -270,20 +231,6 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             }
             ),
-            /*RaisedButton(
-              child: Text('Saunamittari'),
-              onPressed: () {
-                if (idChoice == null){
-                  alertWindow();
-                } else {
-                  FlutterBlue.instance.stopScan();
-                  print('Passing ID:');
-                  print(idChoice);
-                  Navigator.pushReplacementNamed(
-                      context, '/third', arguments: PassID(idChoice));
-                }
-              },
-            ),*/
             GestureDetector(
                 child: Container(
                     child: Center(child: Text("Saunamittari", textAlign: TextAlign.center, style: TextStyle(fontSize: 25.0, color: Colors.white)),), // button text
@@ -324,12 +271,6 @@ class _MyHomePageState extends State<MyHomePage> {
               await bluetoothDevices();
             }
             ),
-            /*RaisedButton(
-              child: Text('Bluetooth laitteet'),
-              onPressed: () async{
-                 await bluetoothDevices();
-              },
-            ),*/
           ],
         ),
       ),
