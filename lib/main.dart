@@ -185,6 +185,11 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: <Widget>[
             new FlatButton(
               onPressed: () {
+                if (idChoice == null) {
+                  
+                } else {
+                  FlutterBlue.instance.stopScan();
+                }
                 Navigator.of(context, rootNavigator: true)
                     .pop(); // dismisses only the dialog and returns nothing
               },
