@@ -559,6 +559,24 @@ Future<void> demoNotification() async{
       return Scaffold(
         appBar: AppBar(
           title: Text('Saunamittari'),
+          actions: <Widget>[
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'Etusivu') {
+                  timer.cancel();
+                  Navigator.pushReplacementNamed(context, '/');
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return {'Etusivu'}.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+            ),
+          ],
           centerTitle: true,
           backgroundColor: Colors.green,
         ),
